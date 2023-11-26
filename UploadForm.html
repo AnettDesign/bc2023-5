@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notes App</title>
+</head>
+<body>
+    <h1>Notes App</h1>
+
+    <!-- Форма для завантаження нових нотаток -->
+    <form action="/upload" method="post">
+        <label for="noteName">Note Name:</label>
+        <input type="text" id="noteName" name="note_name" required>
+        <br>
+        <label for="note">Note:</label>
+        <textarea id="note" name="note" required></textarea>
+        <br>
+        <button type="submit">Save Note</button>
+    </form>
+
+    <hr>
+
+    <!-- Виведення всіх нотаток -->
+    <h2>All Notes</h2>
+    <ul id="allNotes"></ul>
+
+    <hr>
+
+    <!-- Отримання окремої нотатки -->
+    <h2>Get Note by Name</h2>
+    <form id="getNoteForm">
+        <label for="getNoteName">Note Name:</label>
+        <input type="text" id="getNoteName" name="noteName" required>
+        <button type="button" onclick="getNote()">Get Note</button>
+    </form>
+    <div id="getNoteResult"></div>
+
+    <script>
+        // Функція для отримання окремої нотатки
+        function getNote() {
+            const noteName = document.getElementById('getNoteName').value;
+
+            // Виконуємо GET-запит на сервер за нотаткою з вказаною назвою
+            fetch(`/notes/${noteName}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Виводимо результат
+                    const resultDiv = document.getElementById('getNoteResult');
+                    resultDiv.innerHTML = `<p>Note Name: ${data.note_name}</p><p>Note: ${data.note}</p>`;
+                })
+                .catch(error => {
+                    console.error('Error fetching note:', error);
+                    // Очищаємо результат в разі помилки
+                    const resultDiv = document.getElementById('getNoteResult');
+                    resultDiv.innerHTML = '';
+                });
+        }
+
+        // Функція для завантаження всіх нотаток при завантаженні сторінки
+        window.onload = function () {
+            fetch('/notes')
+                .then(response => response.json())
+                .then(data => {
+                    const allNotesList = document.getElementById('allNotes');
+
+                    // Виводимо всі нотатки
+                    data.forEach(note => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${note.note_name}: ${note.note}`;
+                        allNotesList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching notes:', error);
+                });
+        };
+    </script>
+</body>
+</html>
+<!-- Редагування нотатки -->
+<h2>Edit Note</h2>
+<form id="editNoteForm">
+    <label for="editNoteName">Note Name:</label>
+    <input type="text" id="editNoteName" name="noteName" required>
+    <label for="editNote">Note:</label>
+    <textarea id="editNote" name="note" required></textarea>
+    <button type="button" onclick="editNote()">Edit Note</button>
+</form>
+
+<!-- Видалення нотатки -->
+<h2>Delete Note</h2>
+<form id="deleteNoteForm">
+    <label for="deleteNoteName">Note Name:</label>
+    <input type="text" id="deleteNoteName" name="noteName" required>
+    <button type="button" onclick="deleteNote()">Delete Note</button>
+</form>
+
+<!-- ... (решта коду) ... -->
+
+<script>
+    // ... (попередні функції) ...
+
+    // Функція для редагування нотатки
+    function editNote() {
+        const noteName = document.getElementById('editNoteName').value;
+        const note = document.getElementById('editNote').value;
+
+        // Виконуємо PUT-запит на сервер для редагування нотатки
+        fetch(`/notes/${noteName}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ note }),
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Note successfully edited.');
+                } else {
+                    console.error('Error editing note:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error editing note:', error);
+            });
+    }
+
+    // Функція для видалення нотатки
+    function deleteNote() {
+        const noteName = document.getElementById('deleteNoteName').value;
+
+        // Виконуємо DELETE-запит на сервер для видалення нотатки
+        fetch(`/notes/${noteName}`, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Note successfully deleted.');
+                } else {
+                    console.error('Error deleting note:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting note:', error);
+            });
+    }
+</script>
+</body>
+</html>
